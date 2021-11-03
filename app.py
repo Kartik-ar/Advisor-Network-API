@@ -132,5 +132,6 @@ def Booked_calls(user_id):
                     return jsonify( {"body" : savedata.data['Users'][id]['Bookings'], "Status": "200_OK"})
             else:
                 pass
-
-app.run(host="0.0.0.0", port=5960, debug=True)
+            
+if __name__ == "main":
+    app.run(debug=True)
