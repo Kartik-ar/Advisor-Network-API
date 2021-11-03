@@ -79,7 +79,7 @@ def main_page():
 def bad_request_error():
     return  "400_BAD_REQUEST", 400
 
-@app.route('/admin/advisor/',methods=['POST']) #/admin/advisor/?Name=kartik&Photo_URL="http://mypic.com"
+@app.route('/admin/advisor/',methods=['GET','POST']) #/admin/advisor/?Name=kartik&Photo_URL="http://mypic.com"
 def admin():
     Advisor_Name = request.args.get("Name")
     Advisor_Photo_URL = request.args.get("Photo_URL")
@@ -90,7 +90,7 @@ def admin():
         #print(savedata.data)
         return jsonify(savedata.data)#make_response("200_OK")
 
-@app.route('/user/register/',methods=['POST'])
+@app.route('/user/register/',methods=['GET','POST'])
 def user_register():
     Name = request.args.get("Name")
     Email = request.args.get("Email")
@@ -107,7 +107,7 @@ def user_register():
         savedata.add_user(Name,Email,Password,userid,JWT)
         return jsonify({"Body":{"JWT_Authentication_Token": JWT, "User_ID": userid}, "Status": "200_OK"})
 
-@app.route('/user/login/',methods=['POST'])
+@app.route('/user/login/',methods=['GET','POST'])
 def user_login():
     Email = request.args.get("Email")
     Password = request.args.get("Password")
@@ -124,20 +124,20 @@ def user_login():
         except:
             return make_response("401_AUTHENTICATION_ERROR")
 
-@app.route('/user/<user_id>/advisor/',methods=['GET'])
+@app.route('/user/<user_id>/advisor/',methods=['GET','POST'])
 def List_advisors(user_id):
     return jsonify({"Body":
     {"Advisors Names":savedata.data["Advisors"]},
      "Status" : "200_OK"})
 
-@app.route('/user/<user_id>/advisor/<advisor_id>/',methods=['POST'])
+@app.route('/user/<user_id>/advisor/<advisor_id>/',methods=['GET','POST'])
 def Book_call(user_id,advisor_id):
     booking_time = request.args.get("Time")
     booking_id = f"{user_id}_{advisor_id}_{random.randint(100,200)}"
     savedata.add_booking(advisor_id,user_id,booking_time,booking_id)
     return make_response("200_OK")
 
-@app.route('/user/<user_id>/advisor/booking/',methods=['GET'])
+@app.route('/user/<user_id>/advisor/booking/',methods=['GET','POST'])
 def Booked_calls(user_id):
     for id in list(savedata.data['Users'].keys()):
             if savedata.data['Users'][id]['User_id'] == user_id:
