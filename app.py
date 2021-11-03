@@ -87,8 +87,7 @@ def admin():
         return make_response(bad_request_error())
     else:
         data = savedata.add_advisor(Advisor_Name,Advisor_Photo_URL)
-        #print(savedata.data)
-        return jsonify(savedata.data)#make_response("200_OK")
+        return make_response("200_OK")
 
 @app.route('/user/register/',methods=['GET','POST'])
 def user_register():
