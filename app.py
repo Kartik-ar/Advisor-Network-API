@@ -8,19 +8,26 @@ app = Flask('advisor network API')
 class save_data:
     def __init__(self,data):
         self.data = data#{"Advisors":{}, "Users":{}}
+        
+    def save_data(self):
+        with open('Test_Data.json','w') as write_data:
+            json.dump(self.data,write_data,indent=4)    
+        
     def add_advisor(self,Advisor_Name=None,Advisor_Photo_URL=None):
         try:
             if self.data["Advisors"][f"{Advisor_Name}"] is None:
                 self.data["Advisors"][f"{Advisor_Name}"] = {
                     "Advisor_ID":f"{Advisor_Name}_{random.randint(100,200)}",
                     "Advisor_Photo_URL":f"{Advisor_Photo_URL}"}
+                self.save_data()
             else:
                 pass
         except:
             self.data["Advisors"][f"{Advisor_Name}"] = {
                 "Advisor_ID":f"{Advisor_Name}_{random.randint(100,200)}",
                 "Advisor_Photo_URL":f"{Advisor_Photo_URL}"}
-            return 
+            self.save_data()
+          
     def add_user(self,User_Name=None,User_Email=None,User_Password=None,User_id=None,JWT=None):
         try:
             if self.data["Users"][f"{User_Email}"] is None:
@@ -31,6 +38,7 @@ class save_data:
                     "JWT_Authentication_Token":f"{JWT}",
                     "Bookings": {} 
                 }
+                self.save_data()
             else:
                 pass
         except:
@@ -41,6 +49,8 @@ class save_data:
                     "JWT_Authentication_Token":f"{JWT}",
                     "Bookings":{}
                 }
+            self.save_data()
+            
     def add_booking(self,advisor_id,user_id,booking_time,booking_id):
         for ad_id in list(self.data['Advisors'].keys()):
             if self.data['Advisors'][ad_id]['Advisor_ID'] == advisor_id:
@@ -51,8 +61,14 @@ class save_data:
         
         for id in list(self.data['Users'].keys()):
             if self.data['Users'][id]['User_id'] == user_id:
-                    self.data['Users'][id]['Bookings'] = {booking_id : {'Booking_time':booking_time, 'Advisor_detail':advisor_details}}
-                    break
+                    if self.data['Users'][id]['Bookings'] == {}:
+                        self.data['Users'][id]['Bookings'] = {booking_id : {'Booking_time':booking_time, 'Advisor_detail':advisor_details}}
+                        self.save_data()
+                        break
+                    else:
+                        self.data['Users'][id]['Bookings'] = {**self.data['Users'][id]['Bookings'], **{booking_id : {'Booking_time':booking_time, 'Advisor_detail':advisor_details}}}
+                        self.save_data()
+                        break
             else:
                 pass
         
@@ -90,10 +106,10 @@ def admin():
         return make_response("200_OK")
 
 @app.route('/user/register/',methods=['GET','POST'])
-def user_register():
-    Name = request.args.get("Name")
-    Email = request.args.get("Email")
-    Password = request.args.get("Password")
+def user_register(): #User can register there account
+    Name = request.args.get("Name") #?Name={Enter your name}
+    Email = request.args.get("Email") #?Email={Enter your email}
+    Password = request.args.get("Password") #?Password={Enter Your Password}
     if Name is None or Email is None or Password is None:
         return make_response(bad_request_error())
     else:
@@ -107,9 +123,9 @@ def user_register():
         return jsonify({"Body":{"JWT_Authentication_Token": JWT, "User_ID": userid}, "Status": "200_OK"})
 
 @app.route('/user/login/',methods=['GET','POST'])
-def user_login():
-    Email = request.args.get("Email")
-    Password = request.args.get("Password")
+def user_login(): #registered user can login
+    Email = request.args.get("Email") #?Email={Your Email}
+    Password = request.args.get("Password") #?Password={Your Password}
     if Email is None or Password is None:
         return make_response(bad_request_error())
     else:
@@ -124,25 +140,40 @@ def user_login():
             return make_response("401_AUTHENTICATION_ERROR")
 
 @app.route('/user/<user_id>/advisor/',methods=['GET','POST'])
-def List_advisors(user_id):
-    return jsonify({"Body":
-    {"Advisors Names":savedata.data["Advisors"]},
-     "Status" : "200_OK"})
+def List_advisors(user_id): # list the advisors avaliable 
+    user_ids = list(savedata.data['Users'][i]['User_id'] for i in savedata.data['Users'].keys())
+    if user_id in user_ids:
+        return jsonify({"Body":
+        {"Advisors Names":savedata.data["Advisors"]},
+        "Status" : "200_OK"})
+    else:
+        return make_response("<h1>User_Not_Defined</h1><br>\
+            <h2>First register user using (/user/resgister/?Email=&Name=&Password=)</h2>'")
 
 @app.route('/user/<user_id>/advisor/<advisor_id>/',methods=['GET','POST'])
-def Book_call(user_id,advisor_id):
-    booking_time = request.args.get("Time")
-    booking_id = f"{user_id}_{advisor_id}_{random.randint(100,200)}"
-    savedata.add_booking(advisor_id,user_id,booking_time,booking_id)
-    return make_response("200_OK")
+def Book_call(user_id,advisor_id): # book the call with advisor 
+    user_ids = list(savedata.data['Users'][i]['User_id'] for i in savedata.data['Users'].keys())
+    if user_id in user_ids:
+        booking_time = request.args.get("Time") #?Time={Desired time for call}
+        booking_id = f"{user_id}_{advisor_id}_{random.randint(100,200)}"
+        savedata.add_booking(advisor_id,user_id,booking_time,booking_id)
+        return make_response("200_OK")
+    else:
+        return make_response("<h1>User_Not_Defined</h1><br>\
+            <h2>First register user using (/user/resgister/?Email=&Name=&Password=)</h2>'")
 
 @app.route('/user/<user_id>/advisor/booking/',methods=['GET','POST'])
-def Booked_calls(user_id):
-    for id in list(savedata.data['Users'].keys()):
+def Booked_calls(user_id): #show all the bookings done by user
+    user_ids = list(savedata.data['Users'][i]['User_id'] for i in savedata.data['Users'].keys())
+    if user_id in user_ids:
+        for id in list(savedata.data['Users'].keys()):
             if savedata.data['Users'][id]['User_id'] == user_id:
                     return jsonify( {"body" : savedata.data['Users'][id]['Bookings'], "Status": "200_OK"})
             else:
                 pass
+    else:
+        return make_response("<h1>User_Not_Defined</h1><br>\
+            <h2>First register user using (/user/resgister/?Email=&Name=&Password=)</h2>'")
             
 if __name__ == "main":
     app.run(debug=True)
