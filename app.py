@@ -39,8 +39,9 @@ class save_data:
                     "Bookings": {} 
                 }
                 self.save_data()
+                return JWT, User_id
             else:
-                pass
+                return JWT, User_id
         except:
             self.data["Users"][f"{User_Email}"] = {
                     "User_id":f"{User_id}",
@@ -50,6 +51,7 @@ class save_data:
                     "Bookings":{}
                 }
             self.save_data()
+            return JWT, User_id
             
     def add_booking(self,advisor_id,user_id,booking_time,booking_id):
         for ad_id in list(self.data['Advisors'].keys()):
@@ -82,12 +84,12 @@ savedata = save_data(object)
 def main_page():
     return "<pre><h1>API Working Great</h1>\
         <table>Change route to use api service:\
-        <tr><td>1</td> <td>/admin/advisor/</td> <td> - To add an advisor </td>\
-        <tr><td>2</td> <td>/user/register/</td> <td> - To register as a user </td>\
-        <tr><td>3</td> <td>/user/login/</td> <td> - To log in as a user </td>\
-        <tr><td>4</td> <td>/user/{user-id}/advisor </td> <td> - To Get the list of advisors </td>\
-        <tr><td>5</td> <td>/user/{user-id}/advisor/{advisor-id}/</td> <td> - To book call with an advisor </td>\
-        <tr><td>6</td> <td>/user/{user-id}/advisor/booking/</td> <td> - To get all the booked calls </td>\
+        <tr><td>1</td> <td>/admin/advisor/</td> <td> - To add an advisor ( required arguments - 1. Name 2. Photo_URL )</td>\
+        <tr><td>2</td> <td>/user/register/</td> <td> - To register as a user ( required arguments - 1. Name 2. Email 3. Password ) </td>\
+        <tr><td>3</td> <td>/user/login/</td> <td> - To log in as a user ( required arguments - 1. Email 2. Password ) </td>\
+        <tr><td>4</td> <td>/user/{user-id}/advisor </td> <td> - To Get the list of advisors ( No arguments required just change {user-id} with users id ) </td>\
+        <tr><td>5</td> <td>/user/{user-id}/advisor/{advisor-id}/</td> <td> - To book call with an advisor ( required arguments - 1. Time and change {user-id} and {advisor-id} ) </td>\
+        <tr><td>6</td> <td>/user/{user-id}/advisor/booking/</td> <td> - To get all the booked calls ( No arguments required just change {user-id} with users id ) </td>\
         </table>\
         </pre>"
 
